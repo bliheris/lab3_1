@@ -62,6 +62,27 @@ public class BookKeeperTest {
         verify(taxPolicy).calculateTax(ProductType.DRUG, pln(15));
     }
 
+    @Test
+    public void invoiceNetAndGrossTest(){
+        //given
+        InvoiceRequest ir = new InvoiceRequest(clientData);
+        ir.add(requestItem1());
+        ir.add(requestItem2());
+
+        InvoiceFactory invoiceFactory = new InvoiceFactory();
+        TaxPolicy taxPolicy = mock(TaxPolicy.class);
+        when(taxPolicy.calculateTax(any(ProductType.class), any(Money.class)))
+                .thenReturn(new Tax(pln(2), "No reason"));
+        BookKeeper bk = new BookKeeper(invoiceFactory);
+
+        //when
+        Invoice invoice = bk.issuance(ir, taxPolicy);
+
+        //then
+        assertThat(invoice.getNet(), is(pln(25)));
+        assertThat(invoice.getGros(), is(pln(29)));
+    }
+
     private ClientData clientData =
             new ClientData(Id.generate(), "ClientName");
 
