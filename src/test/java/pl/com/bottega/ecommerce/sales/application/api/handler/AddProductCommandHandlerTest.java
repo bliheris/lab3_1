@@ -1,5 +1,6 @@
 package pl.com.bottega.ecommerce.sales.application.api.handler;
 
+import org.junit.Before;
 import org.junit.Test;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.ClientData;
 import pl.com.bottega.ecommerce.canonicalmodel.publishedlanguage.Id;
@@ -21,39 +22,62 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AddProductCommandHandlerTest {
 
-    @Test
-    public void addingProductToReservation() {
-        Id productId = new Id("1");
-        ProductRepository productRepo = mock(ProductRepository.class);
-        Product product = new Product(productId,
+    private ProductRepository productRepo;
+    private Id productId = new Id("1");
+    private Product product;
+
+    private Id reservationId = new Id("1");
+    private Reservation reservation;
+    private ReservationRepository reservationRepo;
+
+    @Before
+    public void setUp(){
+        product = new Product(productId,
                 new Money(new BigDecimal(19), Currency.getInstance("PLN")),
                 "Product", ProductType.FOOD);
+        productRepo = mock(ProductRepository.class);
         when(productRepo.load(productId)).thenReturn(product);
 
-        Id reservationId = new Id("1");
-        Reservation reservation = new Reservation(
+        reservation = new Reservation(
                 reservationId, Reservation.ReservationStatus.OPENED,
                 new ClientData(Id.generate(), "ClientName"), new Date());
-        ReservationRepository reservationRepo = new InMemoryReservationRepo();
+        reservationRepo = new InMemoryReservationRepo();
         reservationRepo.save(reservation);
+    }
 
+    @Test
+    public void addingProductToReservation() {
+        //given
+        AddProductCommand addProductCmd = new AddProductCommand(reservationId, productId , 3);
         AddProductCommandHandler cmdHandler = new AddProductCommandHandler(
                 reservationRepo, productRepo
         );
 
-        AddProductCommand addProductCmd = new AddProductCommand(reservationId, productId , 3);
-
+        //when
         cmdHandler.handle(addProductCmd);
 
+        //then
         assertTrue(reservationRepo.load(reservationId).contains(product));
     }
 
     @Test
-    public void behaviorTest() {
+    public void properProductLoading() {
+        //given
+        AddProductCommand addProductCmd = new AddProductCommand(reservationId, productId , 10);
+        AddProductCommandHandler cmdHandler = new AddProductCommandHandler(
+                reservationRepo, productRepo
+        );
+
+        //when
+        cmdHandler.handle(addProductCmd);
+
+        //then
+        verify(productRepo).load(productId);
     }
 
     private class InMemoryReservationRepo implements ReservationRepository {
