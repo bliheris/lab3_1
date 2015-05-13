@@ -19,6 +19,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static pl.com.bottega.ecommerce.sales.domain.invoicing.ProductDataBuilder.productData;
+import static pl.com.bottega.ecommerce.sales.domain.invoicing.RequestItemBuilder.requestItem;
 
 public class BookKeeperTest {
 
@@ -86,26 +88,24 @@ public class BookKeeperTest {
     private ClientData clientData =
             new ClientData(Id.generate(), "ClientName");
 
-    private RequestItem requestItem1(){
-        ProductData productData = new ProductData(
-                Id.generate(),
-                pln(10),
-                "Produkt",
-                ProductType.FOOD,
-                new Date()
-        );
-        return new RequestItem(productData, 1, pln(10));
+    private RequestItem requestItem1() {
+        return requestItem().withProductData(
+                productData().
+                        withName("Produkt").
+                        withType(ProductType.FOOD).
+                        withPlnPrice(10).build()).
+                withQuantity(1).
+                withPlnPrice(10).build();
     }
 
     private RequestItem requestItem2(){
-        ProductData productData = new ProductData(
-                Id.generate(),
-                pln(5),
-                "Produkt2",
-                ProductType.DRUG,
-                new Date()
-        );
-        return new RequestItem(productData, 3, pln(15));
+        return requestItem().withProductData(
+                productData().
+                        withName("Produkt2").
+                        withType(ProductType.DRUG).
+                        withPlnPrice(5).build()).
+                withQuantity(3).
+                withPlnPrice(15).build();
     }
 
     private Money pln(int value){
